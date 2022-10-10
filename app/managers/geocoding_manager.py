@@ -1,10 +1,9 @@
-from http import HTTPStatus
-
 import pydantic
-from fastapi import HTTPException
 import json
 import httpx
+from fastapi import HTTPException
 from httpx import Response
+from http import HTTPStatus
 
 from app.models.geocoding_models import GeolocationPoint
 from app.services_urls import GEOCODING_URL
