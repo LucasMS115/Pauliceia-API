@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from http import HTTPStatus
 import httpx
+from httpx import HTTPError
 
 from app.main import app
 from app.services_urls import GEOCODING_URL
@@ -42,6 +43,22 @@ def test_get_geolocation_success(respx_mock):
     assert response_body['geom'] == "POINT(-46.6497329689309 -23.5333552136211)"
     assert response_body['confidence'] == 1
     assert response_body['status'] == 1
+
+
+def test_get_geolocation_server_error(respx_mock):
+    service_request_url: str = f"{GEOCODING_URL}/geolocation/alameda%20barao%20de%20piracicaba,34,1908/json"
+    params = {"street": "alameda barao de piracicaba",
+              "number": "34",
+              "year": "1908"}
+
+    respx_mock.get(service_request_url).mock(side_effect=httpx.HTTPError("Internal server error"))
+    response = client.get(GEOLOCATION_PATH, params=params)
+    error_detail = response.json()['detail']
+
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert error_detail['error'] == "Internal server error"
+    assert error_detail['message'] == "Couldn't get a response from Geocoding service."
+    assert error_detail['path'] == GEOLOCATION_PATH
 
 
 def test_get_geolocation_invalid_geo_point(respx_mock):
@@ -107,7 +124,7 @@ def test_get_geolocation_not_found(respx_mock):
     assert error_detail['path'] == GEOLOCATION_PATH
 
 
-def test_get_geolocation_server_error(respx_mock):
+def test_get_geolocation_invalid_response(respx_mock):
     service_request_url: str = f"{GEOCODING_URL}/geolocation/alameda%20barao%20de%20piracicaba,34,1908/json"
     service_response_mock = {"error": "Service unavailable"}
     params = {"street": "alameda barao de piracicaba",
@@ -132,6 +149,6 @@ def test_get_addresses_success(respx_mock):
     response_body = response.json()
 
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json()) == 2
+    assert len(response_body) == 2
     assert response_body[0] == "alameda barao de piracicaba, 34, 1908"
     assert response_body[1] == "alameda barao de piracicaba, 59, 1908"

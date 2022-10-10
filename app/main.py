@@ -1,12 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers.geocoding import geocoding_controller
+from .routers.geocoding import geocoding_router
 
-origins = [
-    # "http://localhost",
-    # "http://localhost:8080",
-    '*'
-]
+origins = ['*']
 
 app = FastAPI(title='Pauliceia API',
               description='Documentation of the Pauliceia\'s API',
@@ -20,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(geocoding_controller.router)
+app.include_router(geocoding_router.router)
 
 
 @app.get("/")

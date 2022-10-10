@@ -12,13 +12,24 @@ from app.utils.test_utils import mount_errors_dict
 
 def get_geolocation(street: str, number: int, year: int, path: str = "/geocoding/geolocation"):
     get_geolocation_url: str = f"{GEOCODING_URL}/geolocation/{street},{number},{year}/json"
-    response: Response = httpx.get(get_geolocation_url)
+    response: Response = request_geolocation_point(get_geolocation_url, path)
 
     response_point = get_geolocation_response_point(response, path)
     check_point_not_found(response_point, f"{street},{number},{year}", path)
     geo_point: GeolocationPoint = get_parsed_geo_point(response_point, path)
 
     return geo_point
+
+
+def request_geolocation_point(get_geolocation_url: str, path: str):
+    try:
+        return httpx.get(get_geolocation_url)
+    except httpx.HTTPError as error:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                            detail=mount_errors_dict(HTTPStatus.INTERNAL_SERVER_ERROR,
+                                                     str(error),
+                                                     "Couldn't get a response from Geocoding service.",
+                                                     path))
 
 
 def get_geolocation_response_point(response: Response, path: str):
@@ -60,11 +71,17 @@ def get_places_list():
     url: str = f"{GEOCODING_URL}/placeslist"
     response: Response = httpx.get(url)
 
+    # server error
+    # invalid objects
+
     return response.json()
 
 
 def get_streets_list():
     url: str = f"{GEOCODING_URL}/streets"
     response: Response = httpx.get(url)
+
+    # server error
+    # invalid objects
 
     return response.json()
