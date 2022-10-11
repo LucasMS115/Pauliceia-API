@@ -1,35 +1,24 @@
 import pydantic
 import json
-import httpx
 from fastapi import HTTPException
 from httpx import Response
 from http import HTTPStatus
 
-from app.models.geocoding_models import GeolocationPoint
+from app.models.geocoding_models import GeolocationPoint, Street
 from app.services_urls import GEOCODING_URL
+from app.utils.request_utils import do_service_request, get_response_json
 from app.utils.test_utils import mount_errors_dict
 
 
 def get_geolocation(street: str, number: int, year: int, path: str = "/geocoding/geolocation"):
     get_geolocation_url: str = f"{GEOCODING_URL}/geolocation/{street},{number},{year}/json"
-    response: Response = request_geolocation_point(get_geolocation_url, path)
+    response: Response = do_service_request("Geocoding", get_geolocation_url, path)
 
     response_point = get_geolocation_response_point(response, path)
     check_point_not_found(response_point, f"{street},{number},{year}", path)
     geo_point: GeolocationPoint = get_parsed_geo_point(response_point, path)
 
     return geo_point
-
-
-def request_geolocation_point(get_geolocation_url: str, path: str):
-    try:
-        return httpx.get(get_geolocation_url)
-    except httpx.HTTPError as error:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                            detail=mount_errors_dict(HTTPStatus.INTERNAL_SERVER_ERROR,
-                                                     str(error),
-                                                     "Couldn't get a response from Geocoding service.",
-                                                     path))
 
 
 def get_geolocation_response_point(response: Response, path: str):
@@ -67,21 +56,39 @@ def get_parsed_geo_point(response_point: dict, path: str):
     return geo_point
 
 
-def get_places_list():
+def get_places_list(path: str = "/geocoding/addresses"):
     url: str = f"{GEOCODING_URL}/placeslist"
-    response: Response = httpx.get(url)
+    response: Response = do_service_request("Geocoding", url, path)
+    response_list: list = get_response_json("Geocoding", response, path)
 
-    # server error
-    # invalid objects
-
-    return response.json()
+    return response_list
 
 
-def get_streets_list():
+def get_streets_list(path: str = "/geocoding/streets"):
     url: str = f"{GEOCODING_URL}/streets"
-    response: Response = httpx.get(url)
+    response: Response = do_service_request("Geocoding", url, path)
+    response_list: list = get_response_json("Geocoding", response, path)
+    parsed_response_list = parse_streets_list(response_list, path)
 
-    # server error
-    # invalid objects
+    return parsed_response_list
 
-    return response.json()
+
+def parse_streets_list(response_list: list, path: str):
+    try:
+        parsed_streets_list: list[Street] = list(map(parse_street_dict, response_list))
+    except (pydantic.error_wrappers.ValidationError, KeyError) as error:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                            detail=mount_errors_dict(HTTPStatus.INTERNAL_SERVER_ERROR,
+                                                     str(error),
+                                                     "Geocoding service returned an invalid list for streets.",
+                                                     path))
+
+    return parsed_streets_list
+
+
+def parse_street_dict(street: dict):
+    # todo: analyse if the streets without name are valid. Decide if they have to be removed.
+    if street['street_name'] is None:
+        print(street)
+
+    return Street.parse_obj(street)
