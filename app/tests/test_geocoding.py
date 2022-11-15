@@ -33,7 +33,7 @@ def test_get_geolocation_success(respx_mock):
               "year": "1908"}
 
     respx_mock.get(service_request_url).mock(return_value=httpx.Response(HTTPStatus.OK, json=service_response_mock))
-    response = client.get('/geocoding/geolocation', params=params)
+    response = client.get(GEOLOCATION_PATH, params=params)
     response_body = response.json()
 
     assert response.status_code == HTTPStatus.OK

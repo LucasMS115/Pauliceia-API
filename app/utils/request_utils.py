@@ -7,9 +7,9 @@ from fastapi import HTTPException
 from app.utils.error_utils import mount_errors_dict
 
 
-def do_service_request(service_name: str, request_url: str, path: str):
+def do_service_request(service_name: str, request_url: str, path: str, params=None):
     try:
-        return httpx.get(request_url)
+        return httpx.get(request_url, params=params)
     except httpx.HTTPError as error:
         raise HTTPException(status_code=HTTPStatus.SERVICE_UNAVAILABLE,
                             detail=mount_errors_dict(HTTPStatus.INTERNAL_SERVER_ERROR,

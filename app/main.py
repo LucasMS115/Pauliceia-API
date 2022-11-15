@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers.geocoding import geocoding_router
+from .routers.vgi import layer_router
 
 origins = ['*']
 
@@ -17,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(geocoding_router.router)
+app.include_router(layer_router.router)
 
 
 @app.get("/")
