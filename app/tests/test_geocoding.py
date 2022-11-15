@@ -53,7 +53,7 @@ def test_get_geolocation_server_error(respx_mock):
     response = client.get(GEOLOCATION_PATH, params=params)
     error_detail = response.json()['detail']
 
-    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert error_detail['error'] == "Internal server error"
     assert error_detail['message'] == "Couldn't get a response from Geocoding service."
     assert error_detail['path'] == GEOLOCATION_PATH
@@ -155,7 +155,7 @@ def test_get_addresses_server_error(respx_mock):
     response = client.get(ADDRESSES_PATH)
     error_detail = response.json()['detail']
 
-    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert error_detail['error'] == "Internal server error"
     assert error_detail['message'] == "Couldn't get a response from Geocoding service."
     assert error_detail['path'] == ADDRESSES_PATH
@@ -212,7 +212,7 @@ def test_get_streets_server_error(respx_mock):
     response = client.get(STREETS_PATH)
     error_detail = response.json()['detail']
 
-    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert error_detail['error'] == "Internal server error"
     assert error_detail['message'] == "Couldn't get a response from Geocoding service."
     assert error_detail['path'] == STREETS_PATH

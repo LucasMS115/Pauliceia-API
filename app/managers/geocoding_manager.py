@@ -7,7 +7,7 @@ from http import HTTPStatus
 from app.models.geocoding_models import GeolocationPoint, Street
 from app.services_urls import GEOCODING_URL
 from app.utils.request_utils import do_service_request, get_response_json
-from app.utils.test_utils import mount_errors_dict
+from app.utils.error_utils import mount_errors_dict
 
 
 def get_geolocation(street: str, number: int, year: int, path: str = "/geocoding/geolocation"):
@@ -88,7 +88,7 @@ def parse_streets_list(response_list: list, path: str):
 
 def parse_street_dict(street: dict):
     # todo: analyse if the streets without name are valid. Decide if they have to be removed.
-    if street['street_name'] is None:
-        print(street)
+    # if street['street_name'] is None:
+        # do something
 
     return Street.parse_obj(street)

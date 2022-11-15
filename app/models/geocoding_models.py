@@ -11,7 +11,7 @@ class GeolocationPoint(BaseModel):
 
 class Street(BaseModel):
     id: int
-    street_name: Optional[str] = None
+    street_name: Optional[str] = None   # todo: analyse if the streets without name are valid.
     street_geom: str
     street_firstyear: int
     street_lastyear: int
